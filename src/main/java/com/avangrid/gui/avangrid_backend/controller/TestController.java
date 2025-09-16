@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+@CrossOrigin(origins = "*")
 @RestController
 public class TestController {
 
@@ -44,14 +45,14 @@ public class TestController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/test-recording")
+    @PostMapping("/recording")
     public ResponseEntity<?> getRecording(
             @RequestBody RecordingRequest request) {
 
         return service.testSampleRecording(request);
     }
 
-    @PostMapping("/test-recording-metadata")
+    @PostMapping("/recording-metadata")
     public Recording getMetadata(@RequestBody RecordingRequest request){
 
         Recording response = service.fetchsampleMetadata(request);
