@@ -247,22 +247,37 @@ public class TestService {
         return recordingMetadata.get(0);
     }
 
-    public byte[] prepareZip(List<RecordingRequest> requests) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (ZipOutputStream zos = new ZipOutputStream(baos)) {
+    public ResponseEntity<byte[]> prepareZip(List<RecordingRequest> requests) throws IOException {
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             ZipOutputStream zos = new ZipOutputStream(baos)) {
             for (RecordingRequest req : requests) {
                 // Pick random static audio file
-                String sampleFile = SAMPLE_FILES_WAV[random.nextInt(SAMPLE_FILES_WAV.length)];
-                ClassPathResource resource = new ClassPathResource(sampleFile);
+                String pickedFile = SAMPLE_FILES_WAV[random.nextInt(SAMPLE_FILES_WAV.length)];
 
-                // Use filename from DTO
-                String zipEntryName = req.getFilename() + ".wav";
+                ClassPathResource resource = new ClassPathResource(pickedFile);
 
-                zos.putNextEntry(new ZipEntry(zipEntryName));
-                Files.copy(resource.getFile().toPath(), zos);zos.closeEntry();
+                zos.putNextEntry(new ZipEntry(req.getFilename())); // zip entry = DTO filename
+                try (InputStream is = resource.getInputStream()) {
+                    StreamUtils.copy(is, zos);
+                }
+                zos.closeEntry();
+
             }
+
+            zos.finish();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", "recordings.zip");
+
+            return new ResponseEntity<>(baos.toByteArray(), headers, HttpStatus.OK);
         }
-        return baos.toByteArray();
+        catch (Exception e) {
+            e.printStackTrace(); // log the actual error
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(("Failed to generate ZIP: " + e.getMessage()).getBytes());
+        }
     }
 
 
