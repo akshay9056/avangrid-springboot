@@ -69,12 +69,7 @@ public class TestController {
     public ResponseEntity<byte[]> downloadRecordings(
             @RequestBody List<RecordingRequest> requests) throws IOException {
 
-        byte[] zipBytes = service.prepareZip(requests);
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=recordings.zip")
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(zipBytes);
+        return service.prepareZip(requests);
     }
 
 
